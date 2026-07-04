@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Server {
 
-    private static final int PORT = 5555;
+    private static final int DEFAULT_PORT = 5555;
     private static final String USER_CSV_FILE = "user_data.csv";
 
     // Stores clients - username -> ClientHandler
@@ -18,12 +18,13 @@ public class Server {
     public static final Map<String, String> userInfo = new HashMap<>();
 
     public static void main(String[] args) {
+        int port = getServerPort();
         loadUsersFromCSV();
         System.out.println(userInfo);
 
         Runtime.getRuntime().addShutdownHook(new Thread(Server::saveUsersToCSV));
 
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server is running -> "+ serverSocket.toString());
 
             while (true) {
@@ -37,6 +38,20 @@ public class Server {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static int getServerPort() {
+        String port = System.getenv("PORT");
+        if (port == null || port.isBlank()) {
+            return DEFAULT_PORT;
+        }
+
+        try {
+            return Integer.parseInt(port.trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid PORT '" + port + "'. Using " + DEFAULT_PORT + ".");
+            return DEFAULT_PORT;
         }
     }
 
