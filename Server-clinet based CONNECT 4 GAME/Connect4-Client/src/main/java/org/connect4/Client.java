@@ -22,6 +22,7 @@ public class Client {
 
     private Thread listener;
     private static ClientConnection connection;
+    private String connectionError;
     public static BoardModel game = new BoardModel();
     public static GameBoard gameboard;
 
@@ -40,8 +41,10 @@ public class Client {
         try {
             socket = new Socket(host, port);
             out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
             in = new ObjectInputStream(socket.getInputStream());
             socket.setTcpNoDelay(true);
+            connectionError = null;
             System.out.println("Connected to server at " + host + ":" + port);
 
             // Start the listener thread
@@ -50,16 +53,24 @@ public class Client {
             listener.start();
 
         } catch (IOException e) {
-            System.out.println("Connection failed: " + e.getMessage());
+            connectionError = "Connection failed: " + e.getMessage();
+            closeFailedConnection();
+            System.out.println(connectionError);
         }
     }
 
     public String authenticate(String username, String password, int type, AtomicBoolean res) {
+        if (!isConnected()) {
+            res.set(false);
+            return connectionError != null ? connectionError : "Not connected to server.";
+        }
+
         this.username = username;
         Communication request = new Communication(username, "server", type, password);
 
         try {
             out.writeObject(request);
+            out.flush();
 
 
             // Wait for the specific response related to this request
@@ -87,8 +98,25 @@ public class Client {
             }
 
         } catch (IOException | InterruptedException e) {
+            res.set(false);
             return "Error during communication: " + e.getMessage();
         }
+    }
+
+    public boolean isConnected() {
+        return socket != null && socket.isConnected() && !socket.isClosed() && out != null && in != null;
+    }
+
+    private void closeFailedConnection() {
+        try {
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException ignored) {}
+        socket = null;
+        out = null;
+        in = null;
+        connection = null;
     }
 
     public static void loadFriends() {

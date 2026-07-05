@@ -1,5 +1,6 @@
 package org.connect4;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -13,14 +14,12 @@ public class ClientHandler implements Runnable {
     private GameSession gameSession;
     private boolean run = true;
 
-    public ClientHandler(Socket socket) {
-        try {
-            this.socket = socket;
-            this.out = new ObjectOutputStream(socket.getOutputStream());
-            this.in = new ObjectInputStream(socket.getInputStream());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public ClientHandler(Socket socket) throws IOException {
+        this.socket = socket;
+        this.socket.setTcpNoDelay(true);
+        this.out = new ObjectOutputStream(socket.getOutputStream());
+        this.out.flush();
+        this.in = new ObjectInputStream(socket.getInputStream());
     }
 
 

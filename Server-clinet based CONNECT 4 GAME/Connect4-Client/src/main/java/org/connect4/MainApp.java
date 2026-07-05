@@ -6,7 +6,7 @@ import javafx.stage.Stage;
 public class MainApp extends Application {
 
     public static Client client;
-    private static final String DEFAULT_SERVER_HOST = "localhost";
+    private static final String DEFAULT_SERVER_HOST = "cn4-container.gentlewater-ac614102.centralus.azurecontainerapps.io";
     private static final int DEFAULT_SERVER_PORT = 5555;
 
     @Override

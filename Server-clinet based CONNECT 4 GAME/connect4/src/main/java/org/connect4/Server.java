@@ -31,9 +31,17 @@ public class Server {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected: " + clientSocket.getInetAddress());
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                Thread thread = new Thread(clientHandler);
-                thread.start();
+                try {
+                    ClientHandler clientHandler = new ClientHandler(clientSocket);
+                    Thread thread = new Thread(clientHandler);
+                    thread.start();
+                } catch (EOFException e) {
+                    System.out.println("Client disconnected before Java object stream handshake.");
+                    closeQuietly(clientSocket);
+                } catch (IOException e) {
+                    System.out.println("Failed to initialize client connection: " + e.getMessage());
+                    closeQuietly(clientSocket);
+                }
             }
 
         } catch (IOException e) {
@@ -79,5 +87,11 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void closeQuietly(Socket socket) {
+        try {
+            socket.close();
+        } catch (IOException ignored) {}
     }
 }

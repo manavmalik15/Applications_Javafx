@@ -22,13 +22,17 @@ public class ClientConnection implements Runnable {
     public void stop() {
         run = false;
         try {
-            if (Client.username != null) {
+            if (Client.username != null && out != null) {
                 out.writeObject(new Communication(Client.username, "server", Communication.BYE, "BYE-BYE"));
+                out.flush();
             }
         } catch (Exception ignored) {}
     }
 
     public boolean sendMessage(Communication message) {
+        if (out == null) {
+            return false;
+        }
         try {
             out.writeObject(message);
             out.flush();
